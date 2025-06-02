@@ -1,4 +1,4 @@
 # inventory
 [web]
-35.159.17.64 ansible_user=ubuntu ansible_ssh_private_key_file=~/.ssh/doron-key.pem
+3.72.39.83 ansible_user=ubuntu ansible_ssh_private_key_file=~/.ssh/doron-key.pem
 
