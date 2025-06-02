@@ -7,8 +7,10 @@
     container_port: 5000  # default value, can be overridden
 
   tasks:
-    - name: Remove existing container (if any)
-      shell: docker rm -f {{ service_name }} || true
+    - name: Stop and remove old containers using the same port
+      shell: |
+        docker ps -q --filter "publish={{ container_port }}" | xargs -r docker rm -f
+        docker rm -f {{ service_name }} || true
 
     - name: Pull latest Docker image
       shell: docker pull {{ docker_image }}
