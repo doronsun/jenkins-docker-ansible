@@ -1,14 +1,23 @@
 - name: Deploy Dockerized Flask App
   hosts: web
   become: yes
+  vars:
+    service_name: service1  # default value, can be overridden
+    docker_image: doronsun/myflaskapp-service1:latest  # default value, can be overridden
+    container_port: 5000  # default value, can be overridden
+
   tasks:
     - name: Remove existing container (if any)
-      shell: docker rm -f flask-app || true
+      shell: docker rm -f {{ service_name }} || true
 
     - name: Pull latest Docker image
-      shell: docker pull doronsun/myflaskapp:latest
+      shell: docker pull {{ docker_image }}
 
     - name: Run new container
-      shell: docker run -d --name flask-app -p 5000:5000 doronsun/myflaskapp:latest
+      shell: >
+        docker run -d 
+        --name {{ service_name }} 
+        -p {{ container_port }}:{{ container_port }} 
+        {{ docker_image }}
 
 

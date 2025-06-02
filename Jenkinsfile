@@ -6,6 +6,11 @@ pipeline {
         IMAGE_NAME = "doronsun/myflaskapp"
     }
 
+    parameters {
+        choice(name: 'SERVICE', choices: ['service1', 'service2'], description: 'Select service to deploy')
+        string(name: 'TAG', defaultValue: 'latest', description: 'Docker image tag')
+    }
+
     stages {
         stage('Checkout') {
             steps {
@@ -17,7 +22,10 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 echo '🐳 Building Docker image...'
-                sh 'docker build -t $IMAGE_NAME:latest ./app'
+                script {
+                    env.FULL_IMAGE_NAME = "${IMAGE_NAME}-${params.SERVICE}:${params.TAG}"
+                    sh "docker build -t ${env.FULL_IMAGE_NAME} ./${params.SERVICE}"
+                }
             }
         }
 
@@ -31,14 +39,21 @@ pipeline {
         stage('Push to DockerHub') {
             steps {
                 echo '📤 Pushing image to DockerHub...'
-                sh 'docker push $IMAGE_NAME:latest'
+                sh "docker push ${env.FULL_IMAGE_NAME}"
             }
         }
 
         stage('Deploy with Ansible') {
             steps {
                 echo '🚀 Deploying with Ansible...'
-                sh 'ansible-playbook -i inventory deploy-playbook.yml'
+                script {
+                    sh """
+                        ansible-playbook -i inventory deploy-playbook.yml \
+                        -e "service_name=${params.SERVICE}" \
+                        -e "docker_image=${env.FULL_IMAGE_NAME}" \
+                        -e "container_port=\${params.SERVICE == 'service1' ? 5000 : 5001}"
+                    """
+                }
             }
         }
     }
