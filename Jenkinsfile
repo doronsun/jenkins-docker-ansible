@@ -47,11 +47,12 @@ pipeline {
             steps {
                 echo '🚀 Deploying with Ansible...'
                 script {
+                    def containerPort = params.SERVICE == 'service1' ? '5000' : '5001'
                     sh """
-                        ansible-playbook -i inventory deploy-playbook.yml \
-                        -e "service_name=${params.SERVICE}" \
-                        -e "docker_image=${env.FULL_IMAGE_NAME}" \
-                        -e "container_port=\${params.SERVICE == 'service1' ? 5000 : 5001}"
+                        ansible-playbook -i inventory deploy-playbook.yml \\
+                        -e "service_name=${params.SERVICE}" \\
+                        -e "docker_image=${env.FULL_IMAGE_NAME}" \\
+                        -e "container_port=${containerPort}"
                     """
                 }
             }
